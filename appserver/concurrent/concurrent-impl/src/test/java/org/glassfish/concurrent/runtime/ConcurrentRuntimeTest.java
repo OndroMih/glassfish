@@ -66,7 +66,7 @@ public class ConcurrentRuntimeTest {
         replay(serviceConfig);
 
         ContextServiceCfg contextServiceConfig = new ContextServiceCfg(serviceConfig);
-        ContextServiceImpl contextService = runtime.getContextService(contextServiceConfig);
+        ContextServiceImpl contextService = (ContextServiceImpl) runtime.getContextService(contextServiceConfig);
         ContextSetupProviderImpl provider = (ContextSetupProviderImpl) contextService.getContextSetupProvider();
         ContextSetup contextSetup = provider.getContextSetup();
         contextSetup.reloadProviders(Thread.currentThread().getContextClassLoader());
@@ -91,7 +91,7 @@ public class ConcurrentRuntimeTest {
         replay(managedThreadFactoryCfg);
 
         ManagedThreadFactoryCfg cfg = new ManagedThreadFactoryCfg(managedThreadFactoryCfg);
-        ManagedThreadFactoryImpl managedThreadFactory = runtime.getManagedThreadFactory(cfg);
+        ManagedThreadFactoryImpl managedThreadFactory = (ManagedThreadFactoryImpl) runtime.getManagedThreadFactory(cfg);
         ContextServiceImpl contextService = getField(managedThreadFactory, "contextService",
             ManagedThreadFactoryImpl.class);
         ContextSetupProviderImpl provider = (ContextSetupProviderImpl) contextService.getContextSetupProvider();
@@ -131,7 +131,7 @@ public class ConcurrentRuntimeTest {
         replay(config);
 
         ManagedExecutorServiceCfg managedExecutorServiceCfg = new ManagedExecutorServiceCfg(config);
-        ManagedExecutorServiceImpl mes = runtime.getManagedExecutorService(managedExecutorServiceCfg);
+        ManagedExecutorServiceImpl mes = (ManagedExecutorServiceImpl) runtime.getManagedExecutorService(managedExecutorServiceCfg);
         ManagedThreadFactoryImpl managedThreadFactory = mes.getManagedThreadFactory();
 
         assertEquals(100_000L, managedThreadFactory.getHungTaskThreshold());

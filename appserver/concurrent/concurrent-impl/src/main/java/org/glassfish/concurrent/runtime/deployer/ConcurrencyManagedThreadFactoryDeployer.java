@@ -17,6 +17,8 @@
 package org.glassfish.concurrent.runtime.deployer;
 
 import com.sun.enterprise.deployment.ManagedThreadFactoryDefinitionDescriptor;
+import jakarta.enterprise.concurrent.ContextService;
+import jakarta.enterprise.concurrent.ManagedThreadFactory;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -26,7 +28,6 @@ import org.glassfish.api.naming.SimpleJndiName;
 import org.glassfish.concurrent.runtime.ConcurrentRuntime;
 import org.glassfish.concurrent.runtime.deployer.cfg.ManagedThreadFactoryCfg;
 import org.glassfish.enterprise.concurrent.ContextServiceImpl;
-import org.glassfish.enterprise.concurrent.ManagedThreadFactoryImpl;
 import org.glassfish.resourcebase.resources.api.ResourceDeployerInfo;
 import org.glassfish.resourcebase.resources.api.ResourceInfo;
 import org.glassfish.resourcebase.resources.naming.ResourceNamingService;
@@ -66,7 +67,7 @@ public class ConcurrencyManagedThreadFactoryDeployer
     @Override
     public void deployResource(ManagedThreadFactoryDefinitionDescriptor resource, String applicationName, String moduleName) throws Exception {
         ManagedThreadFactoryDefinitionDescriptor descriptor = resource;
-        ManagedThreadFactoryImpl factory = createThreadFactory(applicationName, moduleName, descriptor);
+        ManagedThreadFactory factory = createThreadFactory(applicationName, moduleName, descriptor);
         SimpleJndiName resourceName = toResourceName(descriptor);
         ResourceInfo resourceInfo = new ResourceInfo(resourceName, applicationName, moduleName);
         resourceNamingService.publishObject(resourceInfo, factory, true);
@@ -83,11 +84,18 @@ public class ConcurrencyManagedThreadFactoryDeployer
     }
 
 
-    private ManagedThreadFactoryImpl createThreadFactory(String applicationName, String moduleName,
-        ManagedThreadFactoryDefinitionDescriptor descriptor) {
+    private ManagedThreadFactory createThreadFactory(String applicationName, String moduleName,
+            ManagedThreadFactoryDefinitionDescriptor descriptor) {
         ConcurrencyManagedThreadFactoryConfig config = new ConcurrencyManagedThreadFactoryConfig(descriptor);
         ManagedThreadFactoryCfg mtfConfig = new ManagedThreadFactoryCfg(config);
-        ContextServiceImpl contextService = runtime.findOrCreateContextService(descriptor, applicationName, moduleName);
-        return runtime.createManagedThreadFactory(mtfConfig, contextService);
+        ContextService contextService = runtime.findOrCreateContextService(descriptor, applicationName, moduleName);
+        if (contextService instanceof ContextServiceImpl) {
+            ContextServiceImpl contextServiceImpl = (ContextServiceImpl) contextService;
+            return runtime.createManagedThreadFactory(mtfConfig, contextServiceImpl);
+        } else {
+            // TODO - virtual threads
+            throw new IllegalStateException("Not implemented yet - virtual threads");
+        }
+
     }
 }

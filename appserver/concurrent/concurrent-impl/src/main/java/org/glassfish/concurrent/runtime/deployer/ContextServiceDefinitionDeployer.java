@@ -36,7 +36,6 @@ import org.glassfish.api.naming.SimpleJndiName;
 import org.glassfish.concurrent.runtime.ConcurrentRuntime;
 import org.glassfish.concurrent.runtime.LogFacade;
 import org.glassfish.concurrent.runtime.deployer.cfg.ContextServiceCfg;
-import org.glassfish.enterprise.concurrent.ContextServiceImpl;
 import org.glassfish.resourcebase.resources.api.ResourceConflictException;
 import org.glassfish.resourcebase.resources.api.ResourceDeployer;
 import org.glassfish.resourcebase.resources.api.ResourceDeployerInfo;
@@ -145,7 +144,7 @@ public class ContextServiceDefinitionDeployer implements ResourceDeployer<Contex
     }
 
 
-    private ContextServiceImpl createContextService(ContextServiceDefinitionData data) throws Exception {
+    private ContextService createContextService(ContextServiceDefinitionData data) throws Exception {
         LOG.log(Level.FINEST, "createContextService(data={0})", data);
         if (data.getCleared() == null || data.getCleared().isEmpty()) {
             data.addCleared(StandardContextType.WorkArea.name());

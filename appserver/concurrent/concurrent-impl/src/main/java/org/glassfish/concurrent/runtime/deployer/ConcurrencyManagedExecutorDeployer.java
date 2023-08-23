@@ -17,6 +17,8 @@
 package org.glassfish.concurrent.runtime.deployer;
 
 import com.sun.enterprise.deployment.ManagedExecutorDefinitionDescriptor;
+import jakarta.enterprise.concurrent.ContextService;
+import jakarta.enterprise.concurrent.ManagedExecutorService;
 
 import jakarta.inject.Inject;
 
@@ -24,8 +26,6 @@ import org.glassfish.api.invocation.InvocationManager;
 import org.glassfish.api.naming.SimpleJndiName;
 import org.glassfish.concurrent.runtime.ConcurrentRuntime;
 import org.glassfish.concurrent.runtime.deployer.cfg.ManagedExecutorServiceCfg;
-import org.glassfish.enterprise.concurrent.ContextServiceImpl;
-import org.glassfish.enterprise.concurrent.ManagedExecutorServiceImpl;
 import org.glassfish.resourcebase.resources.api.ResourceDeployerInfo;
 import org.glassfish.resourcebase.resources.api.ResourceInfo;
 import org.glassfish.resourcebase.resources.naming.ResourceNamingService;
@@ -63,7 +63,7 @@ public class ConcurrencyManagedExecutorDeployer extends ConcurrencyDeployer<Mana
     @Override
     public void deployResource(ManagedExecutorDefinitionDescriptor resource, String applicationName, String moduleName) throws Exception {
         ManagedExecutorDefinitionDescriptor descriptor = resource;
-        ManagedExecutorServiceImpl service = createExecutorService(applicationName, moduleName, descriptor);
+        ManagedExecutorService service = createExecutorService(applicationName, moduleName, descriptor);
         ResourceInfo resourceInfo = new ResourceInfo(toResourceName(descriptor), applicationName, moduleName);
         namingService.publishObject(resourceInfo, service, true);
     }
@@ -98,11 +98,11 @@ public class ConcurrencyManagedExecutorDeployer extends ConcurrencyDeployer<Mana
     }
 
 
-    private ManagedExecutorServiceImpl createExecutorService(String applicationName, String moduleName,
-        ManagedExecutorDefinitionDescriptor descriptor) {
+    private ManagedExecutorService createExecutorService(String applicationName, String moduleName,
+            ManagedExecutorDefinitionDescriptor descriptor) {
         ConcurrencyManagedExecutorServiceConfig config = new ConcurrencyManagedExecutorServiceConfig(descriptor);
         ManagedExecutorServiceCfg mesConfig = new ManagedExecutorServiceCfg(config);
-        ContextServiceImpl contextService = runtime.findOrCreateContextService(descriptor, applicationName, moduleName);
+        ContextService contextService = runtime.findOrCreateContextService(descriptor, applicationName, moduleName);
         return runtime.createManagedExecutorService(mesConfig, contextService);
     }
 }

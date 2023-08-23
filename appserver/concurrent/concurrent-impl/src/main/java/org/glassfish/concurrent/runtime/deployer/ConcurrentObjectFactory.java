@@ -32,12 +32,16 @@ import org.glassfish.concurrent.runtime.deployer.cfg.ContextServiceCfg;
 import org.glassfish.concurrent.runtime.deployer.cfg.ManagedExecutorServiceCfg;
 import org.glassfish.concurrent.runtime.deployer.cfg.ManagedScheduledExecutorServiceCfg;
 import org.glassfish.concurrent.runtime.deployer.cfg.ManagedThreadFactoryCfg;
-import org.glassfish.enterprise.concurrent.ContextServiceImpl;
-import org.glassfish.enterprise.concurrent.ManagedExecutorServiceAdapter;
 import org.glassfish.enterprise.concurrent.ManagedScheduledExecutorServiceAdapter;
-import org.glassfish.enterprise.concurrent.ManagedThreadFactoryImpl;
 
 import static org.glassfish.concurrent.runtime.ConcurrentRuntime.getRuntime;
+
+import jakarta.enterprise.concurrent.ContextService;
+import jakarta.enterprise.concurrent.ManagedExecutorService;
+import jakarta.enterprise.concurrent.ManagedScheduledExecutorService;
+import jakarta.enterprise.concurrent.ManagedThreadFactory;
+import org.glassfish.enterprise.concurrent.ManagedExecutorServiceImpl;
+import org.glassfish.enterprise.concurrent.ManagedScheduledExecutorServiceImpl;
 
 public class ConcurrentObjectFactory implements ObjectFactory {
 
@@ -61,19 +65,33 @@ public class ConcurrentObjectFactory implements ObjectFactory {
         }
     }
 
-    private ContextServiceImpl getContextService(ContextServiceCfg config) {
+    private ContextService getContextService(ContextServiceCfg config) {
         return getRuntime().getContextService(config);
     }
 
-    private ManagedThreadFactoryImpl getManagedThreadFactory(ManagedThreadFactoryCfg config) {
+    private ManagedThreadFactory getManagedThreadFactory(ManagedThreadFactoryCfg config) {
         return getRuntime().getManagedThreadFactory(config);
     }
 
-    private ManagedExecutorServiceAdapter getManagedExecutorService(ManagedExecutorServiceCfg config) {
-        return getRuntime().getManagedExecutorService(config).getAdapter();
+    private ManagedExecutorService getManagedExecutorService(ManagedExecutorServiceCfg config) {
+        ManagedExecutorService mes = getRuntime().getManagedExecutorService(config);
+        if (mes instanceof ManagedExecutorServiceImpl) {
+            ManagedExecutorServiceImpl mesImpl = (ManagedExecutorServiceImpl) mes;
+            return mesImpl.getAdapter();
+        } else {
+            // TODO - virtual threads
+            throw new IllegalStateException("Not implemented yet - virtual threads");
+        }
     }
 
     private ManagedScheduledExecutorServiceAdapter getManagedScheduledExecutorService(ManagedScheduledExecutorServiceCfg config) {
-        return getRuntime().getManagedScheduledExecutorService(config).getAdapter();
+        ManagedScheduledExecutorService mses = getRuntime().getManagedScheduledExecutorService(config);
+        if (mses instanceof ManagedScheduledExecutorServiceImpl) {
+            ManagedScheduledExecutorServiceImpl msesImpl = (ManagedScheduledExecutorServiceImpl) mses;
+            return msesImpl.getAdapter();
+        } else {
+            // TODO - virtual threads
+            throw new IllegalStateException("Not implemented yet - virtual threads");
+        }
     }
 }
