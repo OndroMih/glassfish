@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import org.glassfish.tests.embedded.scatteredarchive.contextInitialized.ContextInitializedTestServlet;
+import org.glassfish.tests.testjarcontextinitialized.ContextInitializedInJarTestServlet;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -159,6 +160,7 @@ public class ScatteredArchiveTest {
         // add some JAR files to the archive
         sa.addClassPath(new File(PROJECT_DIR, "target/test-dependencies/hamcrest.jar"));
         sa.addClassPath(new File(PROJECT_DIR, "target/test-dependencies/junit-jupiter-engine.jar"));
+        sa.addClassPath(new File(PROJECT_DIR, "target/test-dependencies/testJarContextInitialized.jar"));
 
         URI warURI = sa.toURI();
         printContents(warURI);
@@ -171,6 +173,8 @@ public class ScatteredArchiveTest {
 
         get("http://localhost:8080/satest/" + ContextInitializedTestServlet.class.getSimpleName(),
                 LABEL_CONTEXT_INITIALIZED_COUNTER, "1");
+        get("http://localhost:8080/satest/" + ContextInitializedInJarTestServlet.class.getSimpleName(),
+                ContextInitializedInJarTestServlet.LABEL_CONTEXT_INITIALIZED_COUNTER, "1");
     }
 
     private ScatteredArchive createDefaultArchive(String ARCHIVE_NAME) throws IOException {

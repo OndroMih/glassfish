@@ -43,6 +43,7 @@
         <!--<module>maven-plugin</module>-->
         <module>web</module>
         <module>utils</module>
+        <module>testJarContextInitialized</module>
     </modules>
 
     <dependencyManagement>
