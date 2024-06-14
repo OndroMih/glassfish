@@ -176,6 +176,7 @@ public class WoodstockHandler {
                     }
                 } catch (Exception ex) {
                     // ignore nested exception, handle the original exception only
+                    ioex.addSuppressed(ex);
                 }
                 GuiUtil.handleException(handlerCtx, ioex);
             } catch (Exception ex) {
