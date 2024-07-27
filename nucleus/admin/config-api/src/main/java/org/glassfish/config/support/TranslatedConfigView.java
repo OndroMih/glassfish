@@ -36,6 +36,9 @@ import org.jvnet.hk2.config.ConfigBeanProxy;
 import org.jvnet.hk2.config.ConfigView;
 
 import com.sun.enterprise.security.store.DomainScopedPasswordAliasStore;
+import java.util.Objects;
+import java.util.Optional;
+import org.glassfish.internal.api.ConfigVariableResolver;
 
 /**
  * View that translate configured attributes containing properties like ${foo.bar} into system properties values.
@@ -53,7 +56,7 @@ public class TranslatedConfigView implements ConfigView {
             + "([^\\$]*)");         // after expression
 
     private static final String ALIAS_TOKEN = "ALIAS";
-    private static int MAX_SUBSTITUTION_DEPTH = 100;
+    private static final int MAX_SUBSTITUTION_DEPTH = 100;
     private static final boolean SUBSTITUTION_DISABLED = Boolean.parseBoolean(System.getProperty("org.glassfish.propertyexpansion.disable", "false"));
 
     public static String expandValue(String value) {
@@ -92,12 +95,15 @@ public class TranslatedConfigView implements ConfigView {
             String origValue = stringValue;
             int i = 0;
             while (m.find() && i < MAX_SUBSTITUTION_DEPTH) {
-                String newValue = System.getProperty(m.group(2).trim());
-                if (newValue == null && m.group(3).startsWith(":")) {
-                    newValue = m.group(3).substring(1);
-                }
-                if (newValue != null) {
-                    stringValue = m.replaceFirst(Matcher.quoteReplacement(m.group(1) + newValue + m.group(4)));
+                Optional<String> maybeNewValue = resolveVariable(m.group(2).trim())
+                        .or(() -> {
+                            final String group3 = m.group(3);
+                            return group3.startsWith(":") ? Optional.of(group3.substring(1)) : Optional.empty();
+                        }).map(translatedValue -> {
+                            return m.replaceFirst(Matcher.quoteReplacement(m.group(1) + translatedValue + m.group(4)));
+                        });
+                if (maybeNewValue.isPresent()) {
+                    stringValue = maybeNewValue.get();
                     m.reset(stringValue);
                 }
                 i++;
@@ -108,6 +114,13 @@ public class TranslatedConfigView implements ConfigView {
             return stringValue;
         }
         return value;
+    }
+
+    private static Optional<String> resolveVariable(String variable) {
+        return habitat.getAllServices(ConfigVariableResolver.class).stream()
+                .map(resolver -> resolver.resolve(variable))
+                .filter(Objects::nonNull)
+                .findAny().or(() -> Optional.ofNullable(System.getProperty(variable)));
     }
 
     final ConfigView masterView;
