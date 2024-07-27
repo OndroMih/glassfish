@@ -44,7 +44,13 @@ import com.sun.enterprise.security.store.DomainScopedPasswordAliasStore;
  */
 public class TranslatedConfigView implements ConfigView {
 
-    final static Pattern p = Pattern.compile("([^\\$]*)\\$\\{([^\\}]*)\\}([^\\$]*)");
+    final static Pattern p = Pattern.compile(
+            "([^\\$]*)"             // before expression
+            + "\\$\\{"              // start of expression
+                + "([^\\}:]*)"      // expression
+                + "(:?[^\\}]*)"     // default value
+            + "\\}"                 // end of expression
+            + "([^\\$]*)");         // after expression
 
     private static final String ALIAS_TOKEN = "ALIAS";
     private static int MAX_SUBSTITUTION_DEPTH = 100;
@@ -87,8 +93,11 @@ public class TranslatedConfigView implements ConfigView {
             int i = 0;
             while (m.find() && i < MAX_SUBSTITUTION_DEPTH) {
                 String newValue = System.getProperty(m.group(2).trim());
+                if (newValue == null && m.group(3).startsWith(":")) {
+                    newValue = m.group(3).substring(1);
+                }
                 if (newValue != null) {
-                    stringValue = m.replaceFirst(Matcher.quoteReplacement(m.group(1) + newValue + m.group(3)));
+                    stringValue = m.replaceFirst(Matcher.quoteReplacement(m.group(1) + newValue + m.group(4)));
                     m.reset(stringValue);
                 }
                 i++;
