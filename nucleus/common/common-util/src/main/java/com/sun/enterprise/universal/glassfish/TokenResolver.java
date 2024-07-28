@@ -53,6 +53,8 @@ public class TokenResolver {
     /**
      * Replace $[variables} in map with a matching property from the map that this
      *  instance was constructed with.  Both names and values are replaced.
+     *
+     * The expression inside ${} may end with ":value", then it is replaced with "value" if the variable is not resolved.
      * @param map Map of Strings to be token-replaced
      */
     public void resolve(Map<String, String> map) {
@@ -202,11 +204,18 @@ public class TokenResolver {
         token.token = s.substring(token.start, token.end + 1);
         token.name = s.substring(token.start + Token.TOKEN_START.length(), token.end);
 
+        String[] nameAndDefault = token.name.split(":", 2);
+
+        token.value = props.get(nameAndDefault[0]);
+
+        // if the token exists, but it's value is null and default value is present -- then set the value
+        // to the default value
+        if (token.value == null && nameAndDefault.length > 1) {
+            token.value = resolve(nameAndDefault[1]);
+        }
+
         // if the token exists, but it's value is null -- then set the value
         // back to the token.
-
-        token.value = props.get(token.name);
-
         if (token.value == null) {
             token.value = token.token;
         }

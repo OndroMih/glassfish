@@ -26,6 +26,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
@@ -33,6 +35,7 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 /**
  * @author bnevins
@@ -161,5 +164,23 @@ public class GFLauncherTest {
         info.setDropInterruptedCommands(true);
         launcher.launch();
         assertTrue(launcher.getJvmOptions().contains("-Dorg.glassfish.job-manager.drop-interrupted-commands=true"));
+    }
+
+    @Test
+    public void resolveDefaultValueInVariable() throws GFLauncherException {
+        info.setDomainName("domainVariables");
+        info.setDropInterruptedCommands(true);
+        launcher.launch();
+        assertThat("Log file", launcher.getLogFilename(), is(endsWith("myServer.log")));
+        assertThat("JVM options", launcher.getJvmOptions(), hasItems(equalTo("-DmyProperty=myValue")));
+    }
+
+    @Test
+    public void resolveDefaultValueInVariableWithNestedVariable() throws GFLauncherException {
+        info.setDomainName("domainVariablesNested");
+        info.setDropInterruptedCommands(true);
+        launcher.launch();
+        assertThat("Log file", launcher.getLogFilename(), is(endsWith("myServer.log")));
+        assertThat("JVM options", launcher.getJvmOptions(), hasItems(equalTo("-DmyProperty=myValue")));
     }
 }

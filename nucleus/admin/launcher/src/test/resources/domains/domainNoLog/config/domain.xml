@@ -184,5 +184,5 @@
       </network-config>
     </config>
   </configs>
-  <property name="administrative.domain.name" value="domain1"></property>
+  <property name="administrative.domain.name" value="domainNoLog"></property>
 </domain>
