@@ -15,6 +15,8 @@
  */
 package org.glassfish.microprofile.config;
 
+import io.helidon.config.mp.MpConfigProviderResolver;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.glassfish.api.container.Container;
 import org.glassfish.api.deployment.ApplicationContainer;
@@ -23,10 +25,15 @@ import org.glassfish.api.deployment.DeploymentContext;
 import org.glassfish.api.deployment.MetaData;
 import org.jvnet.hk2.annotations.Service;
 
-import java.util.ServiceLoader;
+import org.glassfish.internal.api.ServerContext;
 
 @Service
 public class ConfigDeployer implements Deployer {
+
+    private volatile boolean configProvidersInitialized = false;
+
+    @Inject
+    ServerContext serverContext;
 
     @Override
     public MetaData getMetaData() {
@@ -40,12 +47,19 @@ public class ConfigDeployer implements Deployer {
 
     @Override
     public ApplicationContainer load(Container container, DeploymentContext deploymentContext) {
-
-        // Initialise Config providers
-        final var resolver = ServiceLoader.load(ConfigProviderResolver.class).iterator().next();
-        ConfigProviderResolver.setInstance(resolver);
-
+        initializeConfigProviders();
         return new ConfigApplicationContainer(deploymentContext);
+    }
+
+    /**
+     * Initialise Config providers if they haven't been initialized
+     */
+    public void initializeConfigProviders() {
+        if (!configProvidersInitialized) {
+            final var resolver = new MpConfigProviderResolver();
+            ConfigProviderResolver.setInstance(resolver);
+            configProvidersInitialized = true;
+        }
     }
 
     @Override

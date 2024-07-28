@@ -13,16 +13,20 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  */
-package org.glassfish.internal.api;
+package org.glassfish.config.api;
+
+import java.util.Optional;
+import org.jvnet.hk2.annotations.Contract;
 
 /**
  *
  * Interface for pluggable variable resolvers.
  * <p>
  * Resolvers are provided as an HK2 service that implements this interface.
- * The the first resolver that resolves the variable to a non-null value will be used to resolve the variable.
+ * The the first resolver that resolves the variable with a non-empty {@link Optional} will be used to resolve the variable.
  * If no resolvers avaiable, a fallback mechanism will be used (e.g. system property).
  */
+@Contract
 public interface ConfigVariableResolver {
-    String resolve(String variableName);
+    Optional<String> resolve(String variableName);
 }

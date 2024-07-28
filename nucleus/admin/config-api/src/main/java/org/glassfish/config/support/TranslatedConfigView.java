@@ -36,9 +36,8 @@ import org.jvnet.hk2.config.ConfigBeanProxy;
 import org.jvnet.hk2.config.ConfigView;
 
 import com.sun.enterprise.security.store.DomainScopedPasswordAliasStore;
-import java.util.Objects;
 import java.util.Optional;
-import org.glassfish.internal.api.ConfigVariableResolver;
+import org.glassfish.config.api.ConfigVariableResolver;
 
 /**
  * View that translate configured attributes containing properties like ${foo.bar} into system properties values.
@@ -92,6 +91,7 @@ public class TranslatedConfigView implements ConfigView {
             // The loop limit is imposed to prevent infinite looping to values
             // such as a=${a} or a=foo ${b} and b=bar {$a}
             Matcher m = p.matcher(stringValue);
+
             String origValue = stringValue;
             int i = 0;
             while (m.find() && i < MAX_SUBSTITUTION_DEPTH) {
@@ -119,8 +119,10 @@ public class TranslatedConfigView implements ConfigView {
     private static Optional<String> resolveVariable(String variable) {
         return habitat.getAllServices(ConfigVariableResolver.class).stream()
                 .map(resolver -> resolver.resolve(variable))
-                .filter(Objects::nonNull)
-                .findAny().or(() -> Optional.ofNullable(System.getProperty(variable)));
+                .filter(mayBe -> mayBe.isPresent())
+                .map(mayBe -> mayBe.get())
+                .findAny()
+                .or(() -> Optional.ofNullable(System.getProperty(variable)));
     }
 
     final ConfigView masterView;
