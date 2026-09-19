@@ -467,6 +467,11 @@ pipeline {
    }
 
    options {
+      // Abort an older run when a newer run of the same multibranch job starts.
+      disableConcurrentBuilds(abortPrevious: true)
+      // Allow only one pipeline run across all PRs/branches at a time.
+      // Different multibranch jobs wait here instead of running concurrently.
+      lock(resource: 'glassfish-ci')
       // numToKeepStr - we need to know if it is changing.
       // artifactNumToKeepStr - they are quite large, so we keep just the last products.
       buildDiscarder(logRotator(numToKeepStr: '1', artifactNumToKeepStr: '1'))
@@ -486,13 +491,6 @@ pipeline {
    }
 
    stages {
-      stage('StopOld') {
-         steps {
-            script {
-               milestone ordinal: Integer.parseInt(env.BUILD_NUMBER), label: "Build ${env.BUILD_NUMBER}"
-            }
-         }
-      }
       // Check Changes and Build deliberately share one pod. The pod is
       // released immediately after Build.
       stage('Prepare') {
